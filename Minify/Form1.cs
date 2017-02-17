@@ -95,6 +95,7 @@ namespace Minify
             Regex slComment = new Regex("\\/\\/", RegexOptions.Compiled);
             Regex mlCommentStart = new Regex("\\/\\*", RegexOptions.Compiled);
             Regex mlCommentEnd = new Regex("\\*\\/", RegexOptions.Compiled);
+            Regex hash = new Regex("^\\s*#", RegexOptions.Compiled);
             
             while (true)
             {
@@ -104,15 +105,27 @@ namespace Minify
                 {
                     break;
                 }
-                if (endsWithLetter)
-                {
-                    sb.Append(" ");
-                }
                 string src = line;
                 Match match = slComment.Match(line);
                 if (match.Success)
                 {
                     line = line.Substring(0, match.Index);
+                }
+                // special case: if this is a #-type line, just leave it be
+                var hm = hash.Match(line);
+                if (hm.Success)
+                {
+                    if (sb.Length > 0)
+                    {
+                        sb.AppendLine();
+                    }
+                    sb.AppendLine(minifyLine(line));
+                    endsWithLetter = false;
+                    continue;
+                }
+                if (endsWithLetter)
+                {
+                    sb.Append(" ");
                 }
                 bool changed = false;
                 while (true)
