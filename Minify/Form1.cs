@@ -29,6 +29,25 @@ namespace Minify
             return tokenChars.Contains(c);
         }
 
+        bool isIdentifierChar(char c)
+        {
+            return char.IsLetterOrDigit(c) || c == '_';
+        }
+
+        int nextNonWhitespaceCharIdx(int start_idx, string line)
+        {
+            int cur_idx = start_idx;
+            while (cur_idx < line.Length)
+            {
+                if (!char.IsWhiteSpace(line[cur_idx]))
+                {
+                    return cur_idx;
+                }
+                cur_idx++;
+            }
+            return cur_idx;
+        }
+
         string minifyLine(string line)
         {
 
@@ -75,9 +94,11 @@ namespace Minify
                 sb.Append(c);
                 cur_idx++;
 
-                if (cur_idx + 1 < line.Length &&
-                    char.IsWhiteSpace(line[cur_idx]) &&
-                    char.IsLetterOrDigit(line[cur_idx + 1]))
+                bool isEndOfWord = (cur_idx + 1) < line.Length && char.IsWhiteSpace(line[cur_idx]);
+                int idx = nextNonWhitespaceCharIdx(cur_idx, line);
+                bool nextTokenIsWord = idx < line.Length && isIdentifierChar(line[idx]);
+
+                if (isEndOfWord && nextTokenIsWord)
                 {
                     sb.Append(line.Substring(cur_idx, 1));
                     cur_idx++;
