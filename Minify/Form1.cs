@@ -16,6 +16,8 @@ namespace Minify
 
         const string quoteChars = "\'\"";
         const string tokenChars = "+-*/=<>;:{}[](),.?\\%|&";
+        const string header_region = "SEHEADER";
+        const string footer_region = "SEFOOTER";
 
         bool isQuote(char c)
         {
@@ -91,7 +93,10 @@ namespace Minify
             StringBuilder sb = new StringBuilder();
             bool isMlComment = false;
             bool endsWithLetter = false;
+            bool is_region = false;
 
+            Regex reg = new Regex("^\\s*#region ([a-zA-Z0-9_\\-]+)", RegexOptions.Compiled);
+            Regex regend = new Regex("^\\s*#endregion", RegexOptions.Compiled);
             Regex slComment = new Regex("\\/\\/", RegexOptions.Compiled);
             Regex mlCommentStart = new Regex("\\/\\*", RegexOptions.Compiled);
             Regex mlCommentEnd = new Regex("\\*\\/", RegexOptions.Compiled);
@@ -99,12 +104,37 @@ namespace Minify
             
             while (true)
             {
-                // first, get rid of the comments
                 string line = sr.ReadLine();
                 if (line == null)
                 {
                     break;
                 }
+                // remove regions
+                Match reg_match = reg.Match(line);
+                if (reg_match.Success &&
+                        (reg_match.Groups[1].Value == header_region ||
+                         reg_match.Groups[1].Value == footer_region))
+                {
+                    is_region = true;
+                    // skip this line
+                    continue;
+                }
+                Match regend_match = regend.Match(line);
+                if (regend_match.Success)
+                {
+                    is_region = false;
+                    // last line we're skipping
+                    continue;
+                }
+                if (is_region)
+                {
+                    // we're inside a region, skip line
+                    continue;
+                }
+
+                // OK, now let's analyze the source code
+
+                // first, get rid of the comments
                 string src = line;
                 Match match = slComment.Match(line);
                 if (match.Success)
