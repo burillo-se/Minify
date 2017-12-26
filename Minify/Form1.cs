@@ -141,7 +141,7 @@ namespace Minify
                     continue;
                 }
                 Match regend_match = regend.Match(line);
-                if (regend_match.Success)
+                if (is_region && regend_match.Success)
                 {
                     is_region = false;
                     // last line we're skipping
