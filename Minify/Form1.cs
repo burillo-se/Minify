@@ -114,7 +114,7 @@ namespace Minify
             StringBuilder sb = new StringBuilder();
             bool isMlComment = false;
             bool endsWithLetter = false;
-            bool is_region = false;
+            bool is_se_region = false;
 
             Regex reg = new Regex("^\\s*#region ([a-zA-Z0-9_\\-]+)", RegexOptions.Compiled);
             Regex regend = new Regex("^\\s*#endregion", RegexOptions.Compiled);
@@ -132,22 +132,21 @@ namespace Minify
                 }
                 // remove regions
                 Match reg_match = reg.Match(line);
-                if (reg_match.Success &&
-                        (reg_match.Groups[1].Value == header_region ||
-                         reg_match.Groups[1].Value == footer_region))
+                if (reg_match.Success)
                 {
-                    is_region = true;
+                    is_se_region = (reg_match.Groups[1].Value == header_region ||
+                         reg_match.Groups[1].Value == footer_region);
                     // skip this line
                     continue;
                 }
                 Match regend_match = regend.Match(line);
-                if (is_region && regend_match.Success)
+                if (regend_match.Success)
                 {
-                    is_region = false;
+                    is_se_region = false;
                     // last line we're skipping
                     continue;
                 }
-                if (is_region)
+                if (is_se_region)
                 {
                     // we're inside a region, skip line
                     continue;
